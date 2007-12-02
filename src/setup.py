@@ -25,8 +25,12 @@ setup(
 	description=doxypy.__blurb__,
 	license=doxypy.__licenseName__,
 	
-    classifiers=[
-        "Programming Language :: Python",  
-    ],
-    scripts=['doxypy.py']
+	classifiers=[
+		"Programming Language :: Python",
+		"Intended Audience :: Developers",
+		"License :: OSI Approved :: GNU General Public License (GPL)",
+		"Operating System :: OS Independent",
+		"Topic :: Software Development :: Documentation"
+	],
+	scripts=['doxypy.py']
 )

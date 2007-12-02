@@ -123,15 +123,15 @@ class Doxypy(object):
 			### DEFCLASS
 			
 			# single line comments
-			["DEFCLASS", "DEFCLASS", self.single_comment_re.search, self.appendCommentLine],
-			["DEFCLASS", "DEFCLASS", self.double_comment_re.search, self.appendCommentLine],
+			["DEFCLASS", "DEFCLASS_BODY", self.single_comment_re.search, self.appendCommentLine],
+			["DEFCLASS", "DEFCLASS_BODY", self.double_comment_re.search, self.appendCommentLine],
 			
 			# multiline comments
 			["DEFCLASS", "COMMENT_SINGLE", self.start_single_comment_re.search, self.appendCommentLine],
-			["COMMENT_SINGLE", "DEFCLASS", self.end_single_comment_re.search, self.appendCommentLine],
+			["COMMENT_SINGLE", "DEFCLASS_BODY", self.end_single_comment_re.search, self.appendCommentLine],
 			["COMMENT_SINGLE", "COMMENT_SINGLE", self.catchall, self.appendCommentLine],
 			["DEFCLASS", "COMMENT_DOUBLE", self.start_double_comment_re.search, self.appendCommentLine],
-			["COMMENT_DOUBLE", "DEFCLASS", self.end_double_comment_re.search, self.appendCommentLine],
+			["COMMENT_DOUBLE", "DEFCLASS_BODY", self.end_double_comment_re.search, self.appendCommentLine],
 			["COMMENT_DOUBLE", "COMMENT_DOUBLE", self.catchall, self.appendCommentLine],
 
 			# other lines
@@ -200,12 +200,15 @@ class Doxypy(object):
 		(from_state, to_state, condition, callback) = self.fsm.current_transition
 		
 		# single line comment
-		if (from_state == "DEFCLASS" or from_state == "FILEHEAD") \
-		and from_state == to_state:
+		if (from_state == "DEFCLASS" and to_state == "DEFCLASS_BODY") \
+		or (from_state == "FILEHEAD" and to_state == "FILEHEAD"):
 			# remove comment delimiter from begin and end of the line
 			activeCommentDelim = match.group(1)
 			line = self.fsm.current_input
 			self.comment.append(line[line.find(activeCommentDelim)+len(activeCommentDelim):line.rfind(activeCommentDelim)])
+			if (to_state == "DEFCLASS_BODY"):
+				self.__closeComment()
+				self.defclass = []
 		# multiline start
 		elif from_state == "DEFCLASS" or from_state == "FILEHEAD":
 			# remove comment delimiter from begin of the line
@@ -213,11 +216,14 @@ class Doxypy(object):
 			line = self.fsm.current_input
 			self.comment.append(line[line.find(activeCommentDelim)+len(activeCommentDelim):])
 		# multiline end
-		elif to_state == "DEFCLASS" or to_state == "FILEHEAD":
+		elif to_state == "DEFCLASS_BODY" or to_state == "FILEHEAD":
 			# remove comment delimiter from end of the line
 			activeCommentDelim = match.group(1)
 			line = self.fsm.current_input
 			self.comment.append(line[0:line.rfind(activeCommentDelim)])
+			if (to_state == "DEFCLASS_BODY"):
+				self.__closeComment()
+				self.defclass = []
 		# in multiline comment
 		else:
 			# just append the comment line

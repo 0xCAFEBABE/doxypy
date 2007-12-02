@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-foo = "bar"
 __applicationName__ = "doxypy"
 __blurb__ = """
 doxypy is an input filter for Doxygen. It preprocesses python
@@ -48,14 +47,13 @@ from optparse import OptionParser, OptionGroup
 class FSM(object):
 	"""	FSM implements a finite state machine. Transitions are given as
 		4-tuples, consisting of an origin state, a target state, a condition
-		for the transition (given as a pointer to a function which gets called
+		for the transition (given as a reference to a function which gets called
 		with a given piece of input) and a pointer to a function to be called
 		upon the execution of the given transition. 
 	"""
 	
 	def __init__(self, start_state=None, transitions=[]):
 		self.transitions = transitions
-		
 		self.current_state = start_state
 		self.current_input = None
 		self.current_transition = None
@@ -157,28 +155,29 @@ class Doxypy(object):
 		self.indent = ""
 	
 	def catchall(self, input):
-		"""	The catchall-condition, always returns true. 
-		"""
+		"""	The catchall-condition, always returns true. """
 		return True
 	
 	def resetCommentSearch(self, match):
 		""" Restarts a new comment search for a different triggering line.
-			Closes the current cmmentblock and starts a new comment search.
+			Closes the current commentblock and starts a new comment search.
 		"""
 		self.__closeComment()
 		self.startCommentSearch(match)
 	
 	def startCommentSearch(self, match):
-		""" Starts a new comment search. Saves the triggering line, resets
-			the current comment and saves the current indentation.
+		""" Starts a new comment search.
+			Saves the triggering line, resets the current comment and saves
+			the current indentation.
 		"""
 		self.defclass = [self.fsm.current_input]
 		self.comment = []
 		self.indent = match.group(1)
 	
 	def stopCommentSearch(self, match):
-		""" Stops a comment search. Closes the current commentblock, resets
-			the triggering line and appends the current line to the output.
+		""" Stops a comment search.
+			Closes the current commentblock, resets	the triggering line and
+			appends the current line to the output.
 		"""
 		self.__closeComment()
 		
@@ -186,16 +185,17 @@ class Doxypy(object):
 		self.output.append(self.fsm.current_input)
 	
 	def appendFileheadLine(self, match):
-		"""	Appends a line in the FILEHEAD state. Closes the open comment
-			block, resets it and appends the current line.
+		"""	Appends a line in the FILEHEAD state.
+			Closes the open comment	block, resets it and appends the current line.
 		""" 
 		self.__closeComment()
 		self.comment = []
 		self.output.append(self.fsm.current_input)
 
 	def appendCommentLine(self, match):
-		"""	Appends a comment line. The comment delimiter is removed from
-			multiline start and ends as well as singleline comments.
+		"""	Appends a comment line.
+			The comment delimiter is removed from multiline start and ends as
+			well as singleline comments.
 		"""
 		(from_state, to_state, condition, callback) = self.fsm.current_transition
 		
@@ -232,8 +232,7 @@ class Doxypy(object):
 		self.defclass.append(self.fsm.current_input)
 	
 	def __closeComment(self):
-		""" Appends any open comment block and triggering block to the output.
-		"""
+		""" Appends any open comment block and triggering block to the output. """
 		if self.comment:
 			block = self.makeCommentBlock()
 			self.output.extend(block)
@@ -245,7 +244,6 @@ class Doxypy(object):
 			indentation level.
 			@returns a list of indented comment lines
 		"""
-	
 		doxyStart = "##"
 		commentLines = self.comment
 		
@@ -279,7 +277,6 @@ def loadFile(filename):
 		@param   filename	The name of the file to load
 		@returns the content of the file.
 	"""
-	
 	f = open(filename, 'r')
 	
 	try:
@@ -290,7 +287,6 @@ def loadFile(filename):
 
 def optParse():
 	""" Parses commandline options. """
-	
 	parser = OptionParser(prog=__applicationName__, version="%prog " + __version__)
 	
 	parser.set_usage("%prog [options] filename")
@@ -313,7 +309,6 @@ def main():
 	""" Opens the file given as first commandline argument and processes it,
 		then prints out the processed file.
 	"""
-	
 	filename = optParse()
 	
 	try:

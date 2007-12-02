@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+
+import sys
+import os
+
+from glob import glob
+from distutils.core import setup
+from distutils.command.install import INSTALL_SCHEMES 
+
+import doxypy
+
+if os.name == "posix":
+	if sys.prefix == "/usr":
+		sys.prefix = "/usr/local/"
+
+	for scheme in INSTALL_SCHEMES.values():
+		scheme['data'] = scheme['purelib'] 
+
+setup(
+	name=doxypy.__applicationName__,
+	version=doxypy.__version__,
+	author='Philippe Neumann & Gina Haeussge',
+	author_email='doxypy@demod.org',
+	url=doxypy.__website__,
+	description=doxypy.__blurb__,
+	license=doxypy.__licenseName__,
+	
+    classifiers=[
+        "Programming Language :: Python",  
+    ],
+    scripts=['doxypy.py']
+)

@@ -1,9 +1,19 @@
 """foo
 bar"""
+import re ''' ford '''
 
-import re
+def multiline1(v1,
+		v2,
+		v3):
+	"""comment"""
+	pass
 
-''' ford '''
+def multiline2  (  
+		v1,
+		v2,
+		v3):
+	"""comment"""
+	pass
 
 class MyClass:
 	def __init__(self, arg=Null):

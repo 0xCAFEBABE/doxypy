@@ -96,6 +96,9 @@ class Doxypy(object):
 		self.hashline_re = re.compile("^\s*#.*$")
 		self.importline_re = re.compile("^\s*(import |from .+ import)")
 
+		self.multiline_defclass_start_re = re.compile("^(\s*)(def|class)(\s.*)?$")
+		self.multiline_defclass_end_re = re.compile(":\s*$")
+		
 		## Transition list format
 		#  ["FROM", "TO", condition, action]
 		transitions = [
@@ -118,6 +121,7 @@ class Doxypy(object):
 			["FILEHEAD", "FILEHEAD", self.hashline_re.search, self.appendFileheadLine],
 			["FILEHEAD", "FILEHEAD", self.importline_re.search, self.appendFileheadLine],
 			["FILEHEAD", "DEFCLASS", self.defclass_re.search, self.resetCommentSearch],
+			["FILEHEAD", "DEFCLASS_MULTI", self.multiline_defclass_start_re.search, self.resetCommentSearch],			
 			["FILEHEAD", "DEFCLASS_BODY", self.catchall, self.appendFileheadLine],
 
 			### DEFCLASS
@@ -142,7 +146,12 @@ class Doxypy(object):
 			### DEFCLASS_BODY
 			
 			["DEFCLASS_BODY", "DEFCLASS", self.defclass_re.search, self.startCommentSearch],
+			["DEFCLASS_BODY", "DEFCLASS_MULTI", self.multiline_defclass_start_re.search, self.startCommentSearch],
 			["DEFCLASS_BODY", "DEFCLASS_BODY", self.catchall, self.appendNormalLine],
+
+			### DEFCLASS_MULTI
+			["DEFCLASS_MULTI", "DEFCLASS", self.multiline_defclass_end_re.search, self.appendDefclassLine],
+			["DEFCLASS_MULTI", "DEFCLASS_MULTI", self.catchall, self.appendDefclassLine],
 		]
 		
 		self.fsm = FSM("FILEHEAD", transitions)

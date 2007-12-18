@@ -162,7 +162,31 @@ class Doxypy(object):
 		self.filehead = []
 		self.defclass = []
 		self.indent = ""
-	
+
+	def __closeComment(self):
+		""" Appends any open comment block and triggering block to the output. """
+		
+		if options.autobrief:
+			if len(self.comment) >= 2 and self.comment[1].strip() == '':
+				self.comment[0] = self.__docstringSummaryToBrief(self.comment[0])
+
+		if self.comment:
+			block = self.makeCommentBlock()
+			self.output.extend(block)
+			
+		if self.defclass:
+			self.output.extend(self.defclass)
+
+	def __docstringSummaryToBrief(self, line):
+		"""	Adds \brief to the a docstring summary line.
+			A \brief is prepended, provided no other doxygen command is at the start of the line.
+		"""
+		stripped = line.strip()
+		if not stripped in ('@', '\\'):
+			return "\\brief " + line
+		else:
+			return line
+
 	def catchall(self, input):
 		"""	The catchall-condition, always returns true. """
 		return True
@@ -214,7 +238,12 @@ class Doxypy(object):
 			# remove comment delimiter from begin and end of the line
 			activeCommentDelim = match.group(1)
 			line = self.fsm.current_input
-			self.comment.append(line[line.find(activeCommentDelim)+len(activeCommentDelim):line.rfind(activeCommentDelim)])
+						
+			comment_contents = line[line.find(activeCommentDelim)+len(activeCommentDelim):line.rfind(activeCommentDelim)]
+			if options.autobrief:
+				comment_contents = self.__docstringSummaryToBrief(comment_contents)
+			self.comment.append(comment_contents)
+			
 			if (to_state == "DEFCLASS_BODY"):
 				self.__closeComment()
 				self.defclass = []
@@ -246,14 +275,6 @@ class Doxypy(object):
 		""" Appends a line to the triggering block. """
 		self.defclass.append(self.fsm.current_input)
 	
-	def __closeComment(self):
-		""" Appends any open comment block and triggering block to the output. """
-		if self.comment:
-			block = self.makeCommentBlock()
-			self.output.extend(block)
-		if self.defclass:
-			self.output.extend(self.defclass)
-
 	def makeCommentBlock(self):
 		""" Indents the current comment block with respect to the current
 			indentation level.
@@ -261,9 +282,6 @@ class Doxypy(object):
 		"""
 		doxyStart = "##"
 		commentLines = self.comment
-		
-		if options.strip:
-			commentLines = map(str.strip, commentLines)
 		
 		commentLines = map(lambda x: "%s# %s" % (self.indent, x), commentLines)
 		l = [self.indent + doxyStart]
@@ -305,9 +323,9 @@ def optParse():
 	parser = OptionParser(prog=__applicationName__, version="%prog " + __version__)
 	
 	parser.set_usage("%prog [options] filename")
-	parser.add_option("--trim", "--strip",
-		action="store_true", dest="strip",
-		help="enables trimming of docstrings, might be useful if you get oddly spaced output"
+	parser.add_option("--autobrief",
+		action="store_true", dest="autobrief",
+		help="Use the docstring summary line as \\brief description"
 	)
 	
 	## parse options

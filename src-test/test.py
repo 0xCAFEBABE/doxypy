@@ -33,6 +33,11 @@ class MyClass:
 		"""
 		pass
 
+def test0():
+	"""not
+	brief"""
+	pass
+
 def test1():
 	""""""
 	pass 

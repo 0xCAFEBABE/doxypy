@@ -137,7 +137,7 @@ EXAMPLE_PATH           =
 EXAMPLE_PATTERNS       = *
 EXAMPLE_RECURSIVE      = NO
 IMAGE_PATH             = 
-INPUT_FILTER           = "./src/doxypy.py"
+INPUT_FILTER           = "./src/doxypy.py --autobrief"
 FILTER_PATTERNS        = 
 FILTER_SOURCE_FILES    = YES
 #---------------------------------------------------------------------------

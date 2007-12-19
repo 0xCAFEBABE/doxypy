@@ -15,8 +15,8 @@ add the following lines to your Doxyfile:
 	INPUT_FILTER = "python /path/to/doxypy.py"
 """
 
-__version__ = "0.3rc1"
-__date__ = "1st December 2007"
+__version__ = "0.3rc2"
+__date__ = "18th December 2007"
 __website__ = "http://code.foosel.org/doxypy"
 
 __author__ = (
@@ -167,9 +167,10 @@ class Doxypy(object):
 		""" Appends any open comment block and triggering block to the output. """
 		
 		if options.autobrief:
-			if len(self.comment) >= 2 and self.comment[1].strip() == '':
+			if len(self.comment) == 1 \
+			or (len(self.comment) > 2 and self.comment[1].strip() == ''):
 				self.comment[0] = self.__docstringSummaryToBrief(self.comment[0])
-
+			
 		if self.comment:
 			block = self.makeCommentBlock()
 			self.output.extend(block)
@@ -178,11 +179,12 @@ class Doxypy(object):
 			self.output.extend(self.defclass)
 
 	def __docstringSummaryToBrief(self, line):
-		"""	Adds \brief to the a docstring summary line.
-			A \brief is prepended, provided no other doxygen command is at the start of the line.
+		"""	Adds \\brief to the docstrings summary line.
+		
+			A \\brief is prepended, provided no other doxygen command is at the start of the line.
 		"""
 		stripped = line.strip()
-		if not stripped in ('@', '\\'):
+		if stripped and not stripped[0] in ('@', '\\'):
 			return "\\brief " + line
 		else:
 			return line
@@ -238,12 +240,8 @@ class Doxypy(object):
 			# remove comment delimiter from begin and end of the line
 			activeCommentDelim = match.group(1)
 			line = self.fsm.current_input
-						
-			comment_contents = line[line.find(activeCommentDelim)+len(activeCommentDelim):line.rfind(activeCommentDelim)]
-			if options.autobrief:
-				comment_contents = self.__docstringSummaryToBrief(comment_contents)
-			self.comment.append(comment_contents)
-			
+			self.comment.append(line[line.find(activeCommentDelim)+len(activeCommentDelim):line.rfind(activeCommentDelim)])
+
 			if (to_state == "DEFCLASS_BODY"):
 				self.__closeComment()
 				self.defclass = []

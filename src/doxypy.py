@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+## TODO
+# - docstring cleanup
+
+
 __applicationName__ = "doxypy"
 __blurb__ = """
 doxypy is an input filter for Doxygen. It preprocesses python
@@ -15,8 +19,8 @@ add the following lines to your Doxyfile:
 	INPUT_FILTER = "python /path/to/doxypy.py"
 """
 
-__version__ = "0.3rc2"
-__date__ = "18th December 2007"
+__version__ = "0.3"
+__date__ = "12th June 2008"
 __website__ = "http://code.foosel.org/doxypy"
 
 __author__ = (
@@ -45,11 +49,12 @@ import re
 from optparse import OptionParser, OptionGroup
 
 class FSM(object):
-	"""	FSM implements a finite state machine. Transitions are given as
-		4-tuples, consisting of an origin state, a target state, a condition
-		for the transition (given as a reference to a function which gets called
-		with a given piece of input) and a pointer to a function to be called
-		upon the execution of the given transition. 
+	"""Implements a finite state machine.
+	
+	Transitions are given as 4-tuples, consisting of an origin state, a target
+	state, a condition for the transition (given as a reference to a function
+	which gets called with a given piece of input) and a pointer to a function
+	to be called upon the execution of the given transition. 
 	"""
 	
 	def __init__(self, start_state=None, transitions=[]):
@@ -66,7 +71,7 @@ class FSM(object):
 		
 	def makeTransition(self, input):
 		""" Makes a transition based on the given input.
-			@param	input	input to parse by the FSM
+		@param	input	input to parse by the FSM
 		"""
 		for transition in self.transitions:
 			[from_state, to_state, condition, callback] = transition
@@ -82,14 +87,16 @@ class FSM(object):
 
 class Doxypy(object):
 	def __init__(self):
-		self.start_single_comment_re = re.compile("^\s*(''')")
+		string_prefixes = "[uU]?[rR]?"
+		
+		self.start_single_comment_re = re.compile("^\s*%s(''')" % string_prefixes)
 		self.end_single_comment_re = re.compile("(''')\s*$")
 		
-		self.start_double_comment_re = re.compile("^\s*(\"\"\")")
+		self.start_double_comment_re = re.compile("^\s*%s(\"\"\")" % string_prefixes)
 		self.end_double_comment_re = re.compile("(\"\"\")\s*$")
 		
-		self.single_comment_re = re.compile("^\s*(''').*(''')\s*$")
-		self.double_comment_re = re.compile("^\s*(\"\"\").*(\"\"\")\s*$")
+		self.single_comment_re = re.compile("^\s*%s(''').*(''')\s*$" % string_prefixes)
+		self.double_comment_re = re.compile("^\s*%s(\"\"\").*(\"\"\")\s*$" % string_prefixes)
 		
 		self.defclass_re = re.compile("^(\s*)(def .+:|class .+:)")
 		self.empty_re = re.compile("^\s*$")
@@ -164,7 +171,7 @@ class Doxypy(object):
 		self.indent = ""
 
 	def __closeComment(self):
-		""" Appends any open comment block and triggering block to the output. """
+		"""Appends any open comment block and triggering block to the output."""
 		
 		if options.autobrief:
 			if len(self.comment) == 1 \
@@ -179,9 +186,10 @@ class Doxypy(object):
 			self.output.extend(self.defclass)
 
 	def __docstringSummaryToBrief(self, line):
-		"""	Adds \\brief to the docstrings summary line.
+		"""Adds \\brief to the docstrings summary line.
 		
-			A \\brief is prepended, provided no other doxygen command is at the start of the line.
+		A \\brief is prepended, provided no other doxygen command is at the
+		start of the line.
 		"""
 		stripped = line.strip()
 		if stripped and not stripped[0] in ('@', '\\'):
@@ -190,29 +198,32 @@ class Doxypy(object):
 			return line
 
 	def catchall(self, input):
-		"""	The catchall-condition, always returns true. """
+		"""The catchall-condition, always returns true."""
 		return True
 	
 	def resetCommentSearch(self, match):
-		""" Restarts a new comment search for a different triggering line.
-			Closes the current commentblock and starts a new comment search.
+		"""Restarts a new comment search for a different triggering line.
+		
+		Closes the current commentblock and starts a new comment search.
 		"""
 		self.__closeComment()
 		self.startCommentSearch(match)
 	
 	def startCommentSearch(self, match):
-		""" Starts a new comment search.
-			Saves the triggering line, resets the current comment and saves
-			the current indentation.
+		"""Starts a new comment search.
+		
+		Saves the triggering line, resets the current comment and saves
+		the current indentation.
 		"""
 		self.defclass = [self.fsm.current_input]
 		self.comment = []
 		self.indent = match.group(1)
 	
 	def stopCommentSearch(self, match):
-		""" Stops a comment search.
-			Closes the current commentblock, resets	the triggering line and
-			appends the current line to the output.
+		"""Stops a comment search.
+		
+		Closes the current commentblock, resets	the triggering line and
+		appends the current line to the output.
 		"""
 		self.__closeComment()
 		
@@ -220,17 +231,19 @@ class Doxypy(object):
 		self.output.append(self.fsm.current_input)
 	
 	def appendFileheadLine(self, match):
-		"""	Appends a line in the FILEHEAD state.
-			Closes the open comment	block, resets it and appends the current line.
+		"""Appends a line in the FILEHEAD state.
+		
+		Closes the open comment	block, resets it and appends the current line.
 		""" 
 		self.__closeComment()
 		self.comment = []
 		self.output.append(self.fsm.current_input)
 
 	def appendCommentLine(self, match):
-		"""	Appends a comment line.
-			The comment delimiter is removed from multiline start and ends as
-			well as singleline comments.
+		"""Appends a comment line.
+		
+		The comment delimiter is removed from multiline start and ends as
+		well as singleline comments.
 		"""
 		(from_state, to_state, condition, callback) = self.fsm.current_transition
 		
@@ -266,17 +279,17 @@ class Doxypy(object):
 			self.comment.append(self.fsm.current_input)
 	
 	def appendNormalLine(self, match):
-		""" Appends a line to the output. """
+		"""Appends a line to the output."""
 		self.output.append(self.fsm.current_input)
 		
 	def appendDefclassLine(self, match):
-		""" Appends a line to the triggering block. """
+		"""Appends a line to the triggering block."""
 		self.defclass.append(self.fsm.current_input)
 	
 	def makeCommentBlock(self):
-		""" Indents the current comment block with respect to the current
-			indentation level.
-			@returns a list of indented comment lines
+		"""Indents the current comment block with respect to the current
+		indentation level.
+		@returns a list of indented comment lines
 		"""
 		doxyStart = "##"
 		commentLines = self.comment
@@ -288,10 +301,11 @@ class Doxypy(object):
 		return l
 	
 	def parse(self, input):
-		""" Parses a python file given as input string and returns the doxygen-
-			compatible representation.
-			@param	input	the python code to parse
-			@returns the modified python code
+		"""Parses a python file given as input string and returns the doxygen-
+		compatible representation.
+		
+		@param	input	the python code to parse
+		@returns the modified python code
 		""" 
 		lines = input.split("\n")
 		
@@ -304,9 +318,10 @@ class Doxypy(object):
 		return "\n".join(self.output)
 	
 def loadFile(filename):
-	""" Loads file "filename" and returns the content.
-		@param   filename	The name of the file to load
-		@returns the content of the file.
+	"""Loads file "filename" and returns the content.
+	
+	@param   filename	The name of the file to load
+	@returns the content of the file.
 	"""
 	f = open(filename, 'r')
 	
@@ -317,7 +332,7 @@ def loadFile(filename):
 		f.close()
 
 def optParse():
-	""" Parses commandline options. """
+	"""Parses commandline options."""
 	parser = OptionParser(prog=__applicationName__, version="%prog " + __version__)
 	
 	parser.set_usage("%prog [options] filename")
@@ -337,8 +352,8 @@ def optParse():
 	return filename[0]
 
 def main():
-	""" Opens the file given as first commandline argument and processes it,
-		then prints out the processed file.
+	"""Opens the file given as first commandline argument and processes it,
+	then prints out the processed file.
 	"""
 	filename = optParse()
 	

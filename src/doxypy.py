@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 
-## TODO
-# - docstring cleanup
-
-
 __applicationName__ = "doxypy"
 __blurb__ = """
 doxypy is an input filter for Doxygen. It preprocesses python
@@ -71,6 +67,7 @@ class FSM(object):
 		
 	def makeTransition(self, input):
 		""" Makes a transition based on the given input.
+
 		@param	input	input to parse by the FSM
 		"""
 		for transition in self.transitions:
@@ -289,6 +286,7 @@ class Doxypy(object):
 	def makeCommentBlock(self):
 		"""Indents the current comment block with respect to the current
 		indentation level.
+
 		@returns a list of indented comment lines
 		"""
 		doxyStart = "##"

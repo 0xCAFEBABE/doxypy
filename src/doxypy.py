@@ -15,8 +15,8 @@ add the following lines to your Doxyfile:
 	INPUT_FILTER = "python /path/to/doxypy.py"
 """
 
-__version__ = "0.3"
-__date__ = "12th June 2008"
+__version__ = "0.4"
+__date__ = "13th November 2008"
 __website__ = "http://code.foosel.org/doxypy"
 
 __author__ = (
@@ -78,9 +78,10 @@ class FSM(object):
 					self.current_state = to_state
 					self.current_input = input
 					self.current_transition = transition
+					if options.debug:
+						print >>sys.stderr, "### FSM: executing (%s -> %s) for line '%s'" % (from_state, to_state, input)
 					callback(match)
 					return
-
 
 class Doxypy(object):
 	def __init__(self):
@@ -159,9 +160,9 @@ class Doxypy(object):
 		]
 		
 		self.fsm = FSM("FILEHEAD", transitions)
+		self.outstream = sys.stdout
 		
 		self.output = []
-		
 		self.comment = []
 		self.filehead = []
 		self.defclass = []
@@ -193,6 +194,21 @@ class Doxypy(object):
 			return "\\brief " + line
 		else:
 			return line
+	
+	def __flushBuffer(self):
+		"""Flushes the current outputbuffer to the outstream."""
+		if self.output:
+			try:
+				if options.debug:
+					print >>sys.stderr, "### OUTPUT: ", self.output
+				print >>self.outstream, "\n".join(self.output)
+				self.outstream.flush()
+			except IOError:
+				# Fix for FS#33. Catches "broken pipe" when doxygen closes 
+				# stdout prematurely upon usage of INPUT_FILTER, INLINE_SOURCES 
+				# and FILTER_SOURCE_FILES.
+				pass
+		self.output = []
 
 	def catchall(self, input):
 		"""The catchall-condition, always returns true."""
@@ -203,6 +219,8 @@ class Doxypy(object):
 		
 		Closes the current commentblock and starts a new comment search.
 		"""
+		if options.debug:
+			print >>sys.stderr, "### CALLBACK: resetCommentSearch" 
 		self.__closeComment()
 		self.startCommentSearch(match)
 	
@@ -212,6 +230,8 @@ class Doxypy(object):
 		Saves the triggering line, resets the current comment and saves
 		the current indentation.
 		"""
+		if options.debug:
+			print >>sys.stderr, "### CALLBACK: startCommentSearch"
 		self.defclass = [self.fsm.current_input]
 		self.comment = []
 		self.indent = match.group(1)
@@ -222,6 +242,8 @@ class Doxypy(object):
 		Closes the current commentblock, resets	the triggering line and
 		appends the current line to the output.
 		"""
+		if options.debug:
+			print >>sys.stderr, "### CALLBACK: stopCommentSearch" 
 		self.__closeComment()
 		
 		self.defclass = []
@@ -232,6 +254,8 @@ class Doxypy(object):
 		
 		Closes the open comment	block, resets it and appends the current line.
 		""" 
+		if options.debug:
+			print >>sys.stderr, "### CALLBACK: appendFileheadLine" 
 		self.__closeComment()
 		self.comment = []
 		self.output.append(self.fsm.current_input)
@@ -242,6 +266,8 @@ class Doxypy(object):
 		The comment delimiter is removed from multiline start and ends as
 		well as singleline comments.
 		"""
+		if options.debug:
+			print >>sys.stderr, "### CALLBACK: appendCommentLine" 
 		(from_state, to_state, condition, callback) = self.fsm.current_transition
 		
 		# single line comment
@@ -277,10 +303,14 @@ class Doxypy(object):
 	
 	def appendNormalLine(self, match):
 		"""Appends a line to the output."""
+		if options.debug:
+			print >>sys.stderr, "### CALLBACK: appendNormalLine" 
 		self.output.append(self.fsm.current_input)
 		
 	def appendDefclassLine(self, match):
 		"""Appends a line to the triggering block."""
+		if options.debug:
+			print >>sys.stderr, "### CALLBACK: appendDefclassLine" 
 		self.defclass.append(self.fsm.current_input)
 	
 	def makeCommentBlock(self):
@@ -309,26 +339,37 @@ class Doxypy(object):
 		
 		for line in lines:
 			self.fsm.makeTransition(line)
-		
+			
 		if self.fsm.current_state == "DEFCLASS":
 			self.__closeComment()
 		
 		return "\n".join(self.output)
 	
-def loadFile(filename):
-	"""Loads file "filename" and returns the content.
-	
-	@param   filename	The name of the file to load
-	@returns the content of the file.
-	"""
-	f = open(filename, 'r')
-	
-	try:
-		content = f.read()
-		return content
-	finally:
+	def parseFile(self, filename):
+		"""Parses a python file given as input string and returns the doxygen-
+		compatible representation.
+		
+		@param	input	the python code to parse
+		@returns the modified python code
+		""" 
+		f = open(filename, 'r')
+		
+		for line in f:
+			self.parseLine(line.rstrip('\n'))
+		if self.fsm.current_state == "DEFCLASS":
+			self.__closeComment()
+			self.__flushBuffer()
 		f.close()
-
+	
+	def parseLine(self, line):
+		"""Parse one line of python and flush the resulting output to the 
+		outstream.
+		
+		@param	line	the python code line to parse
+		"""
+		self.fsm.makeTransition(line)
+		self.__flushBuffer()
+	
 def optParse():
 	"""Parses commandline options."""
 	parser = OptionParser(prog=__applicationName__, version="%prog " + __version__)
@@ -337,6 +378,10 @@ def optParse():
 	parser.add_option("--autobrief",
 		action="store_true", dest="autobrief",
 		help="Use the docstring summary line as \\brief description"
+	)
+	parser.add_option("--debug",
+		action="store_true", dest="debug",
+		help="Enables debugging output"
 	)
 	
 	## parse options
@@ -350,20 +395,12 @@ def optParse():
 	return filename[0]
 
 def main():
-	"""Opens the file given as first commandline argument and processes it,
-	then prints out the processed file.
+	"""Starts the parser on the file given by the filename as the first 
+	argument on the commandline.
 	"""
 	filename = optParse()
-	
-	try:
-		input = loadFile(filename)
-	except IOError, (errno, msg):
-		print >>sys.stderr, msg
-		sys.exit(-1)
-	
 	fsm = Doxypy()
-	output = fsm.parse(input)
-	print output
+	fsm.parseFile(filename)
 
 if __name__ == "__main__":
 	main()

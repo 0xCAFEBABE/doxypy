@@ -377,11 +377,11 @@ def optParse():
 	parser.set_usage("%prog [options] filename")
 	parser.add_option("--autobrief",
 		action="store_true", dest="autobrief",
-		help="Use the docstring summary line as \\brief description"
+		help="use the docstring summary line as \\brief description"
 	)
 	parser.add_option("--debug",
 		action="store_true", dest="debug",
-		help="Enables debugging output"
+		help="enable debug output on stderr"
 	)
 	
 	## parse options

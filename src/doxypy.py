@@ -355,7 +355,7 @@ class Doxypy(object):
 		f = open(filename, 'r')
 		
 		for line in f:
-			self.parseLine(line.rstrip('\n'))
+			self.parseLine(line.rstrip('\r\n'))
 		if self.fsm.current_state == "DEFCLASS":
 			self.__closeComment()
 			self.__flushBuffer()

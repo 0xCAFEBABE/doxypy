@@ -79,7 +79,7 @@ class FSM(object):
 					self.current_input = input
 					self.current_transition = transition
 					if options.debug:
-						print >>sys.stderr, "### FSM: executing (%s -> %s) for line '%s'" % (from_state, to_state, input)
+						print >>sys.stderr, "# FSM: executing (%s -> %s) for line '%s'" % (from_state, to_state, input)
 					callback(match)
 					return
 
@@ -200,7 +200,7 @@ class Doxypy(object):
 		if self.output:
 			try:
 				if options.debug:
-					print >>sys.stderr, "### OUTPUT: ", self.output
+					print >>sys.stderr, "# OUTPUT: ", self.output
 				print >>self.outstream, "\n".join(self.output)
 				self.outstream.flush()
 			except IOError:
@@ -220,7 +220,7 @@ class Doxypy(object):
 		Closes the current commentblock and starts a new comment search.
 		"""
 		if options.debug:
-			print >>sys.stderr, "### CALLBACK: resetCommentSearch" 
+			print >>sys.stderr, "# CALLBACK: resetCommentSearch" 
 		self.__closeComment()
 		self.startCommentSearch(match)
 	
@@ -231,7 +231,7 @@ class Doxypy(object):
 		the current indentation.
 		"""
 		if options.debug:
-			print >>sys.stderr, "### CALLBACK: startCommentSearch"
+			print >>sys.stderr, "# CALLBACK: startCommentSearch"
 		self.defclass = [self.fsm.current_input]
 		self.comment = []
 		self.indent = match.group(1)
@@ -243,7 +243,7 @@ class Doxypy(object):
 		appends the current line to the output.
 		"""
 		if options.debug:
-			print >>sys.stderr, "### CALLBACK: stopCommentSearch" 
+			print >>sys.stderr, "# CALLBACK: stopCommentSearch" 
 		self.__closeComment()
 		
 		self.defclass = []
@@ -255,7 +255,7 @@ class Doxypy(object):
 		Closes the open comment	block, resets it and appends the current line.
 		""" 
 		if options.debug:
-			print >>sys.stderr, "### CALLBACK: appendFileheadLine" 
+			print >>sys.stderr, "# CALLBACK: appendFileheadLine" 
 		self.__closeComment()
 		self.comment = []
 		self.output.append(self.fsm.current_input)
@@ -267,7 +267,7 @@ class Doxypy(object):
 		well as singleline comments.
 		"""
 		if options.debug:
-			print >>sys.stderr, "### CALLBACK: appendCommentLine" 
+			print >>sys.stderr, "# CALLBACK: appendCommentLine" 
 		(from_state, to_state, condition, callback) = self.fsm.current_transition
 		
 		# single line comment
@@ -304,13 +304,13 @@ class Doxypy(object):
 	def appendNormalLine(self, match):
 		"""Appends a line to the output."""
 		if options.debug:
-			print >>sys.stderr, "### CALLBACK: appendNormalLine" 
+			print >>sys.stderr, "# CALLBACK: appendNormalLine" 
 		self.output.append(self.fsm.current_input)
 		
 	def appendDefclassLine(self, match):
 		"""Appends a line to the triggering block."""
 		if options.debug:
-			print >>sys.stderr, "### CALLBACK: appendDefclassLine" 
+			print >>sys.stderr, "# CALLBACK: appendDefclassLine" 
 		self.defclass.append(self.fsm.current_input)
 	
 	def makeCommentBlock(self):

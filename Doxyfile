@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = doxypy
-PROJECT_NUMBER         = 0.3
+PROJECT_NUMBER         = 0.4
 OUTPUT_DIRECTORY       = ./test/doc/
 CREATE_SUBDIRS         = NO
 OUTPUT_LANGUAGE        = English
@@ -25,7 +25,7 @@ ABBREVIATE_BRIEF       = "The $name class " \
 ALWAYS_DETAILED_SEC    = NO
 INLINE_INHERITED_MEMB  = NO
 FULL_PATH_NAMES        = YES
-STRIP_FROM_PATH        = /home/phil/code/doxypy/
+STRIP_FROM_PATH        = /home/gina/devel/privat/doxypy/
 STRIP_FROM_INC_PATH    = 
 SHORT_NAMES            = NO
 JAVADOC_AUTOBRIEF      = NO
@@ -149,7 +149,7 @@ FILTER_SOURCE_FILES    = YES
 # configuration options related to source browsing
 #---------------------------------------------------------------------------
 SOURCE_BROWSER         = YES
-INLINE_SOURCES         = NO
+INLINE_SOURCES         = YES
 STRIP_CODE_COMMENTS    = YES
 REFERENCED_BY_RELATION = YES
 REFERENCES_RELATION    = YES

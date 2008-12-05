@@ -122,6 +122,7 @@ def test10():
 	
 class Fnord:
 
-	def __init__(self
-			  another_param=None):
-		"""AASDF"""
+	def __init__(self,
+				 another_param=None
+				 yet_another_param=2):
+		"""This should be recognized"""

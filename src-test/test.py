@@ -120,3 +120,8 @@ def test9():
 def test10():
 	""" Blub ''' and the same reverse """
 	
+class Fnord:
+
+	def __init__(self
+			  another_param=None):
+		"""AASDF"""

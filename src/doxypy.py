@@ -15,8 +15,8 @@ add the following lines to your Doxyfile:
 	INPUT_FILTER = "python /path/to/doxypy.py"
 """
 
-__version__ = "0.4"
-__date__ = "13th November 2008"
+__version__ = "0.4.1"
+__date__ = "5th December 2008"
 __website__ = "http://code.foosel.org/doxypy"
 
 __author__ = (
@@ -51,6 +51,13 @@ class FSM(object):
 	state, a condition for the transition (given as a reference to a function
 	which gets called with a given piece of input) and a pointer to a function
 	to be called upon the execution of the given transition. 
+	"""
+	
+	"""
+	@var transitions holds the transitions
+	@var current_state holds the current state
+	@var current_input holds the current input
+	@var current_transition hold the currently active transition
 	"""
 	
 	def __init__(self, start_state=None, transitions=[]):
@@ -146,6 +153,7 @@ class Doxypy(object):
 			# other lines
 			["DEFCLASS", "DEFCLASS", self.empty_re.search, self.appendDefclassLine],
 			["DEFCLASS", "DEFCLASS", self.defclass_re.search, self.resetCommentSearch],
+			["DEFCLASS", "DEFCLASS_MULTI", self.multiline_defclass_start_re.search, self.resetCommentSearch],
 			["DEFCLASS", "DEFCLASS_BODY", self.catchall, self.stopCommentSearch],
 			
 			### DEFCLASS_BODY

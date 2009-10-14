@@ -15,8 +15,8 @@ add the following lines to your Doxyfile:
 	INPUT_FILTER = "python /path/to/doxypy.py"
 """
 
-__version__ = "0.4.1"
-__date__ = "5th December 2008"
+__version__ = "0.4.2"
+__date__ = "14th October 2009"
 __website__ = "http://code.foosel.org/doxypy"
 
 __author__ = (
@@ -73,8 +73,8 @@ class FSM(object):
 		self.transitions.append([from_state, to_state, condition, callback])
 		
 	def makeTransition(self, input):
-		""" Makes a transition based on the given input.
-
+		"""Makes a transition based on the given input.
+		
 		@param	input	input to parse by the FSM
 		"""
 		for transition in self.transitions:

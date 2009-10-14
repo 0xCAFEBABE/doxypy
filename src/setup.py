@@ -9,13 +9,6 @@ from distutils.command.install import INSTALL_SCHEMES
 
 import doxypy
 
-if os.name == "posix":
-	if sys.prefix == "/usr":
-		sys.prefix = "/usr/local/"
-
-	for scheme in INSTALL_SCHEMES.values():
-		scheme['data'] = scheme['purelib'] 
-
 setup(
 	name=doxypy.__applicationName__,
 	version=doxypy.__version__,
